@@ -16,6 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from organizations import views
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
+  path('', views.home),
+  path('organizations/<district_id>', views.get_org_list),  # example: /organizations/1
+  path('search/products', views.search_product),  # example: /search/products?name=prod1
+  path('details/organization/<organization_id>', views.get_org_details),  # example: /details/organization/1
+  path('details/product/<product_id>', views.get_product_details),  # example: /details/product/1
+  path('admin/', admin.site.urls),
 ]
