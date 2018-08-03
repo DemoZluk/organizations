@@ -19,10 +19,23 @@ from django.urls import path
 from organizations import views
 
 urlpatterns = [
+  # Home
   path('', views.home),
-  path('organizations/<district_id>', views.get_org_list),  # example: /organizations/1
-  path('search/products', views.search_product),  # example: /search/products?name=prod1
-  path('details/organization/<organization_id>', views.get_org_details),  # example: /details/organization/1
-  path('details/product/<product_id>', views.get_product_details),  # example: /details/product/1
+
+  # Organization list by district. Example: /organizations/1
+  path('organizations/<district_id>', views.get_org_list),
+
+  # Search product by name. Example: /search/products?name=prod1
+  path('search/products', views.search_product),
+
+  # View organization details. Example: /organization/1
+  path('organization/<organization_id>', views.get_org_details),
+
+  # Product list by organization with filtering. Example: /organization/1/products?min_price=10
+  path('organization/<organization_id>/products', views.get_product_list),
+
+  # View product details. Example: /product/1
+  path('product/<product_id>', views.get_product_details),
+
   path('admin/', admin.site.urls),
 ]

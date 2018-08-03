@@ -1,3 +1,4 @@
+from django.db.models import Min, Max
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from organizations.models import Organization, Product
@@ -30,6 +31,21 @@ def get_org_details(request, organization_id):
   org = get_object_or_404(Organization, id=organization_id)
 
   response = dict(id=organization_id, name=org.name, description=org.description)
+
+  return JsonResponse(response)
+
+
+def get_product_list(request, organization_id):
+  params = request.GET
+  products = Organization.objects.get(id=organization_id).products
+  if params.get('category'):
+    products = products.filter(category=params.get('category'))
+  if params.get('min_price'):
+    products = products.filter(pricelist__price__gte=params.get('min_price'))
+  if params.get('max_price'):
+    products = products.filter(pricelist__price__lte=params.get('max_price'))
+
+  response = dict(params=params, list=[dict(id=prod.id, name=prod.name, price=prod.pricelist_set.first().price) for prod in products.all()])
 
   return JsonResponse(response)
 
