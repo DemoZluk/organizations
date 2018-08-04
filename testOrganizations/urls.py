@@ -35,7 +35,7 @@ urlpatterns = [
   path('search/products', views.ProductSearch.as_view()),
 
   # Product list by organization with filtering. Example: /products?min_price=10&organization=1
-  # Filters: min_price, max_price, category
+  # Filters: organization, min_price, max_price, category
   path('products', views.ProductFilter.as_view()),
 
   path('admin/', admin.site.urls),
