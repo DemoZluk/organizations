@@ -50,27 +50,26 @@ class ProductFilter(generics.ListAPIView):
   serializer_class = ProductSerializer
 
   def get_queryset(self):
-    queryset = Product.objects.all()
-
-    organization_id = self.request.query_params.get('organization', None)
-
-    category = self.request.query_params.get('category', None)
-    min_price = self.request.query_params.get('min_price', None)
-    max_price = self.request.query_params.get('max_price', None)
-
-    if organization_id is not None:
-      queryset = queryset.filter(organization__id=organization_id)
-
-    if category is not None:
-      queryset = queryset.filter(category=category)
-
-    if min_price is not None:
-      queryset = queryset.filter(price_list__price__gte=min_price)
-
-    if max_price is not None:
-      queryset = queryset.filter(price_list__price__lte=max_price)
+    queryset = filter_queryset(Product.objects.all(), self.request.query_params)
 
     return queryset
+
+
+def filter_queryset(queryset, query_params):
+  organization_id = query_params.get('organization', None)
+  category = query_params.get('category', None)
+  min_price = query_params.get('min_price', None)
+  max_price = query_params.get('max_price', None)
+  if organization_id is not None:
+    queryset = queryset.filter(organization__id=organization_id)
+  if category is not None:
+    queryset = queryset.filter(category=category)
+  if min_price is not None:
+    queryset = queryset.filter(price_list__price__gte=min_price)
+  if max_price is not None:
+    queryset = queryset.filter(price_list__price__lte=max_price)
+
+  return queryset
 
 
 def home(request):
