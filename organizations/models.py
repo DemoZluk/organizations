@@ -36,8 +36,8 @@ class Organization(models.Model):
 
 
 class PriceList(models.Model):
-  product = models.ForeignKey(Product, on_delete=models.CASCADE)
-  organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+  product = models.ForeignKey(Product, related_name='price_list', on_delete=models.CASCADE)
+  organization = models.ForeignKey(Organization, related_name='price_list', on_delete=models.CASCADE)
   price = models.FloatField()
 
   class Meta:

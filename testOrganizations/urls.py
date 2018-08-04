@@ -14,28 +14,29 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
 from organizations import views
+from organizations.rest_router import router
 
 urlpatterns = [
   # Home
   path('', views.home),
 
+  path('rest/', include(router.urls)),
+
+  # Organization list. Example: /organizations/
+  path('organizations/', views.OrganizationList.as_view()),
+
   # Organization list by district. Example: /organizations/1
-  path('organizations/<district_id>', views.get_org_list),
+  path('organizations/<int:district_id>', views.OrganizationList.as_view()),
 
   # Search product by name. Example: /search/products?name=prod1
-  path('search/products', views.search_product),
+  path('search/products', views.ProductSearch.as_view()),
 
-  # View organization details. Example: /organization/1
-  path('organization/<organization_id>', views.get_org_details),
-
-  # Product list by organization with filtering. Example: /organization/1/products?min_price=10
-  path('organization/<organization_id>/products', views.get_product_list),
-
-  # View product details. Example: /product/1
-  path('product/<product_id>', views.get_product_details),
+  # Product list by organization with filtering. Example: /products?min_price=10&organization=1
+  # Filters: min_price, max_price, category
+  path('products', views.ProductFilter.as_view()),
 
   path('admin/', admin.site.urls),
 ]

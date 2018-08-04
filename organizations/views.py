@@ -1,58 +1,77 @@
-from django.db.models import Min, Max
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
-from organizations.models import Organization, Product
+from rest_framework import viewsets, generics
+
+from organizations.models import Organization, Product, PriceList
+from organizations.serializers import OrganizationSerializer, ProductSerializer, PriceListSerializer
+
+
+class OrganizationViewSet(viewsets.ModelViewSet):
+  queryset = Organization.objects.all()
+  serializer_class = OrganizationSerializer
+
+
+class ProductViewSet(viewsets.ModelViewSet):
+  queryset = Product.objects.all()
+  serializer_class = ProductSerializer
+
+
+class PriceListViewSet(viewsets.ModelViewSet):
+  queryset = PriceList.objects.all()
+  serializer_class = PriceListSerializer
+
+
+class OrganizationList(generics.ListAPIView):
+  serializer_class = OrganizationSerializer
+
+  def get_queryset(self):
+    queryset = Organization.objects.all()
+
+    if self.kwargs and self.kwargs['district_id']:
+      queryset = queryset.filter(district=self.kwargs['district_id'])
+
+    return queryset
+
+
+class ProductSearch(generics.ListAPIView):
+  serializer_class = ProductSerializer
+
+  def get_queryset(self):
+    queryset = Product.objects.all()
+    search_name = self.request.query_params.get('name', None)
+
+    if search_name is not None:
+      queryset = queryset.filter(name__contains=search_name)
+
+    return queryset
+
+
+class ProductFilter(generics.ListAPIView):
+  serializer_class = ProductSerializer
+
+  def get_queryset(self):
+    queryset = Product.objects.all()
+
+    organization_id = self.request.query_params.get('organization', None)
+
+    category = self.request.query_params.get('category', None)
+    min_price = self.request.query_params.get('min_price', None)
+    max_price = self.request.query_params.get('max_price', None)
+
+    if organization_id is not None:
+      queryset = queryset.filter(organization__id=organization_id)
+
+    if category is not None:
+      queryset = queryset.filter(category=category)
+
+    if min_price is not None:
+      queryset = queryset.filter(price_list__price__gte=min_price)
+
+    if max_price is not None:
+      queryset = queryset.filter(price_list__price__lte=max_price)
+
+    return queryset
 
 
 def home(request):
   return render(request, 'home.html')
-
-
-def get_org_list(request, district_id):
-  org_list = Organization.objects.filter(district_id=district_id)
-  response = dict(district_id=district_id, organizations=[dict(id=org.id, name=org.name) for org in org_list])
-
-  return JsonResponse(response)
-
-
-def search_product(request):
-  query = request.GET.get('name')
-  if query:
-    product_list = Product.objects.filter(name__contains=query)
-  else:
-    product_list = Product.objects.all()
-
-  response = dict(query=query, products=[dict(id=prod.id, name=prod.name) for prod in product_list])
-
-  return JsonResponse(response)
-
-
-def get_org_details(request, organization_id):
-  org = get_object_or_404(Organization, id=organization_id)
-
-  response = dict(id=organization_id, name=org.name, description=org.description)
-
-  return JsonResponse(response)
-
-
-def get_product_list(request, organization_id):
-  params = request.GET
-  products = Organization.objects.get(id=organization_id).products
-  if params.get('category'):
-    products = products.filter(category=params.get('category'))
-  if params.get('min_price'):
-    products = products.filter(pricelist__price__gte=params.get('min_price'))
-  if params.get('max_price'):
-    products = products.filter(pricelist__price__lte=params.get('max_price'))
-
-  response = dict(params=params, list=[dict(id=prod.id, name=prod.name, price=prod.pricelist_set.first().price) for prod in products.all()])
-
-  return JsonResponse(response)
-
-
-def get_product_details(request, product_id):
-  product = get_object_or_404(Product, id=product_id)
-
-  response = dict(id=product_id, name=product.name)
-
-  return JsonResponse(response)
